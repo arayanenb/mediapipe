@@ -4,11 +4,6 @@
 const video  = document.getElementById('camera');
 const status = document.getElementById('status');
 const info   = document.getElementById('info');
-const scrollTopButton = document.getElementById('scrollTopButton');
-
-scrollTopButton.addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
 
 // ===================================================
 // 2. On crée l'objet "Hands" de MediaPipe.
@@ -76,6 +71,22 @@ function isHandOpen(landmarks) {
   return extended >= 3; // main ouverte = au moins 3 doigts tendus
 }
 
+// Geste de scroll : POUCE + INDEX repliés
+//   - index plié : bout (8) plus proche du poignet que l'articulation (6)
+//   - pouce plié : bout (4) proche de la base de l'index (5),
+//     normalisé par la taille de la paume (distance 0 → 5)
+function isThumbAndIndexClosed(landmarks) {
+  const wrist = landmarks[0];
+
+  const indexFolded =
+    distance(landmarks[8], wrist) < distance(landmarks[6], wrist);
+
+  const palmSize    = distance(landmarks[0], landmarks[5]);
+  const thumbFolded = distance(landmarks[4], landmarks[5]) < palmSize * 0.6;
+
+  return indexFolded && thumbFolded;
+}
+
 // ===================================================
 // 5. Réagir aux résultats : on modifie le CSS
 //    et on fait défiler la page.
@@ -90,22 +101,37 @@ function onResults(results) {
 
   const landmarks = results.multiHandLandmarks[0];
 
-  // ✋ Main ouverte → on AFFICHE la boîte info et on scrolle
-  // ✊ Main fermée → on CACHE la boîte et on ne scrolle pas
+  // ✋ Main ouverte → on AFFICHE la boîte info
+  // ✊ Sinon       → on la CACHE
   if (isHandOpen(landmarks)) {
     info.style.display = 'flex';
-    const y = landmarks[0].y;
-    if (y < 0.4) {
-      status.textContent = '✋⬆️ Main haute → scroll haut';
-      window.scrollBy({ top: -20, behavior: 'auto' });
-    } else if (y > 0.6) {
-      status.textContent = '✋⬇️ Main basse → scroll bas';
-      window.scrollBy({ top: 20, behavior: 'auto' });
-    } else {
-      status.textContent = '✋ Main ouverte (zone neutre)';
-    }
   } else {
     info.style.display = 'none';
+  }
+
+  // 🤏 Si POUCE + INDEX sont fermés → on fait défiler la page
+  //    selon la position verticale du poignet.
+  //
+  // landmarks[0].y = position verticale du poignet,
+  //   entre 0 (haut de la webcam) et 1 (bas).
+  //
+  //  - main en HAUT de l'image  → scroll vers le HAUT
+  //  - main en BAS de l'image   → scroll vers le BAS
+  //  - main au milieu           → zone morte (pas de scroll)
+  if (isThumbAndIndexClosed(landmarks)) {
+    const y = landmarks[0].y;
+    if (y < 0.4) {
+      status.textContent = '🤏⬆️ Scroll haut';
+      window.scrollBy({ top: -20, behavior: 'auto' });
+    } else if (y > 0.6) {
+      status.textContent = '🤏⬇️ Scroll bas';
+      window.scrollBy({ top: 20, behavior: 'auto' });
+    } else {
+      status.textContent = '🤏 Pouce + index fermés (zone morte)';
+    }
+  } else if (isHandOpen(landmarks)) {
+    status.textContent = '✋ Main ouverte';
+  } else {
     status.textContent = '✊ Main fermée';
   }
 }
