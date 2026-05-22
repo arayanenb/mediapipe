@@ -4,6 +4,11 @@
 const video  = document.getElementById('camera');
 const status = document.getElementById('status');
 const info   = document.getElementById('info');
+const scrollTopButton = document.getElementById('scrollTopButton');
+
+scrollTopButton.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 // ===================================================
 // 2. On crée l'objet "Hands" de MediaPipe.
