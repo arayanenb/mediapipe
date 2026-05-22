@@ -8,7 +8,8 @@
 <body>
 
   <h1>📚 Rappel du dernier cour de Web</h1>
-  <p>✋ Main ouverte = boîte bleue + scroll selon la hauteur de la main · ✊ Poing fermé = boîte cachée.
+  <p>🤏 Pinch avec pouce, index et majeur + twist vers la droite pour scroller vers le haut, twist vers la gauche pour scroller vers le bas.
+     ✊ Poing fermé = boîte cachée.
      👍 Thumbs-up = cacher le site · 👍👍 Deux thumbs-up fermeront la fenêtre si le navigateur le permet.</p>
 
   <!-- La webcam (utilisée par MediaPipe) -->
@@ -19,8 +20,8 @@
   <div id="info">
     <span class="emoji">💡</span>
     <div>
-      <strong>Boîte d'info :</strong> ouverte = main ouverte, cachée = poing fermé.
-      C'est ce qu'on contrôle avec <code>display: flex</code> / <code>display: none</code>.
+      <strong>Boîte d'info :</strong> ouverte = pinch détecté, cachée = pas de pinch.
+      Elle indique que la page est prête pour le scroll par twist.
     </div>
   </div>
 
