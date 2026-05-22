@@ -4,11 +4,20 @@
 const video  = document.getElementById('camera');
 const status = document.getElementById('status');
 const info   = document.getElementById('info');
+const body   = document.body;
 const scrollTopButton = document.getElementById('scrollTopButton');
 
 scrollTopButton.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+function setHidden(shouldHide) {
+  if (shouldHide) {
+    body.classList.add('hidden');
+  } else {
+    body.classList.remove('hidden');
+  }
+}
 
 // ===================================================
 // 2. On crée l'objet "Hands" de MediaPipe.
@@ -108,11 +117,13 @@ function onResults(results) {
   // Aucune main détectée
   if (!results.multiHandLandmarks ||
       results.multiHandLandmarks.length === 0) {
+    setHidden(false);
     status.textContent = '🙈 Aucune main';
     return;
   }
 
   if (isBothHandsThumbsUp(results)) {
+    setHidden(false);
     info.style.display = 'none';
     status.textContent = '👍👍 Deux thumbs-up détectés — fermeture du navigateur';
     window.close();
@@ -120,6 +131,14 @@ function onResults(results) {
   }
 
   const landmarks = results.multiHandLandmarks[0];
+
+  if (results.multiHandLandmarks.length === 1 && isThumbsUp(landmarks)) {
+    setHidden(true);
+    status.textContent = '👍 Thumbs-up détecté — site caché';
+    return;
+  }
+
+  setHidden(false);
 
   // ✋ Main ouverte → on AFFICHE la boîte info et on scrolle
   // ✊ Main fermée → on CACHE la boîte et on ne scrolle pas
