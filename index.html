@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cours Web + MediaPipe</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>📚 Rappel du dernier cours de Web</h1>
+  <p>✋ Ouvre la main pour afficher la boîte bleue · ✊ Ferme le poing pour la cacher et faire défiler la page.</p>
+
+  <!-- La webcam (utilisée par MediaPipe) -->
+  <video id="camera" autoplay muted playsinline></video>
+  <div id="status">⏳ Chargement de MediaPipe…</div>
+
+  <!-- L'élément qu'on va afficher/cacher avec la main -->
+  <div id="info">
+    <span class="emoji">💡</span>
+    <div>
+      <strong>Boîte d'info :</strong> ouverte = main ouverte, cachée = poing fermé.
+      C'est ce qu'on contrôle avec <code>display: flex</code> / <code>display: none</code>.
+    </div>
+  </div>
+
+  <!-- Le contenu du cours -->
+  <div class="card">
+    <h2>1. HTML — la structure</h2>
+    <p>HTML (<em>HyperText Markup Language</em>) sert à <strong>structurer</strong> le contenu : titres, paragraphes, listes, images, liens.</p>
+    <pre>&lt;h1&gt;Titre principal&lt;/h1&gt;
+&lt;p&gt;Un paragraphe avec un &lt;a href="..."&gt;lien&lt;/a&gt;.&lt;/p&gt;</pre>
+    <p>Chaque balise a un rôle sémantique : <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;footer&gt;</code>…</p>
+  </div>
+
+  <div class="card">
+    <h2>2. CSS — le style</h2>
+    <p>CSS (<em>Cascading Style Sheets</em>) habille la page : couleurs, polices, espacements, mises en page (Flexbox, Grid), animations.</p>
+    <pre>h1 {
+  color: #0066cc;
+  font-size: 2rem;
+  text-align: center;
+}</pre>
+    <p>La propriété <code>display</code> est centrale : <code>block</code>, <code>inline</code>, <code>flex</code>, <code>grid</code>, ou <code>none</code> pour cacher un élément — c'est exactement ce qu'on fait avec la main !</p>
+  </div>
+
+  <div class="card">
+    <h2>3. JavaScript — le comportement</h2>
+    <p>JS rend la page <strong>interactive</strong> : on réagit aux clics, au scroll, aux touches du clavier, et on modifie le DOM en direct.</p>
+    <pre>const btn = document.querySelector('button');
+btn.addEventListener('click', () => {
+  alert('Salut !');
+});</pre>
+  </div>
+
+  <div class="card">
+    <h2>4. Le DOM</h2>
+    <p>Le DOM (<em>Document Object Model</em>) est l'arbre des éléments HTML que JS peut lire et modifier :
+       <code>document.getElementById()</code>, <code>element.style.display = 'none'</code>, etc.</p>
+  </div>
+
+  <div class="card">
+    <h2>5. Les événements & les bibliothèques externes</h2>
+    <p>On peut charger une bibliothèque depuis un <strong>CDN</strong> avec une balise <code>&lt;script&gt;</code>.
+       C'est ce qu'on fait pour <strong>MediaPipe</strong>, la bibliothèque de Google qui détecte les mains, le visage et la pose directement dans le navigateur.</p>
+    <p>Pas besoin d'installer Python ou de serveur : tout tourne en JS dans ton navigateur. 🎉</p>
+  </div>
+
+  <div class="card">
+    <h2>6. Récap MediaPipe</h2>
+    <p>MediaPipe nous renvoie <strong>21 points</strong> par main (les "landmarks"), avec leurs coordonnées x, y, z.</p>
+    <p>On compare la position des <em>bouts de doigts</em> à celle des <em>articulations</em> pour savoir si la main est ouverte ou fermée. Simple !</p>
+  </div>
+
+  <!-- 1. On charge MediaPipe Hands depuis un CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <!-- 2. Notre code à nous -->
+  <script src="script.js"></script>
+</body>
+</html>

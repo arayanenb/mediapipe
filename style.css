@@ -1,0 +1,89 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 30px;
+  background: #f4f6fa;
+  color: #222;
+}
+
+h1 { color: #0066cc; }
+
+/* La webcam en haut à droite */
+#camera {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 220px;
+  height: 165px;
+  border: 3px solid #0066cc;
+  border-radius: 10px;
+  transform: scaleX(-1); /* effet miroir */
+  background: #000;
+  z-index: 100;
+}
+
+/* Petit badge qui affiche l'état de la main */
+#status {
+  position: fixed;
+  top: 200px;
+  right: 20px;
+  width: 220px;
+  text-align: center;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+/* La boîte "info" qu'on affiche/cache avec la main.
+   display: flex au départ, JS le passera à "none". */
+#info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #0066cc;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0 30px 0;
+  max-width: 700px;
+}
+
+#info .emoji {
+  font-size: 40px;
+}
+
+/* Les cartes du cours */
+.card {
+  background: white;
+  padding: 20px 25px;
+  margin: 15px 0;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  max-width: 700px;
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #0066cc;
+}
+
+code {
+  background: #eef;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.95em;
+}
+
+pre {
+  background: #1e1e1e;
+  color: #e6e6e6;
+  padding: 15px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.9em;
+}
