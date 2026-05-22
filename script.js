@@ -4,6 +4,11 @@
 const video  = document.getElementById('camera');
 const status = document.getElementById('status');
 const info   = document.getElementById('info');
+const scrollTopButton = document.getElementById('scrollTopButton');
+
+scrollTopButton.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 // ===================================================
 // 2. On crée l'objet "Hands" de MediaPipe.
@@ -14,9 +19,9 @@ const hands = new Hands({
     `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
-// Options : 1 seule main, qualité moyenne
+// Options : jusqu'à 2 mains, qualité moyenne
 hands.setOptions({
-  maxNumHands: 1,
+  maxNumHands: 2,
   modelComplexity: 1,
   minDetectionConfidence: 0.7,
   minTrackingConfidence: 0.5
@@ -71,20 +76,28 @@ function isHandOpen(landmarks) {
   return extended >= 3; // main ouverte = au moins 3 doigts tendus
 }
 
-// Geste de scroll : POUCE + INDEX repliés
-//   - index plié : bout (8) plus proche du poignet que l'articulation (6)
-//   - pouce plié : bout (4) proche de la base de l'index (5),
-//     normalisé par la taille de la paume (distance 0 → 5)
-function isThumbAndIndexClosed(landmarks) {
+function isThumbsUp(landmarks) {
   const wrist = landmarks[0];
+  const palmSize = distance(landmarks[0], landmarks[5]);
 
+  const thumbExtended =
+    distance(landmarks[4], landmarks[5]) > palmSize * 0.8;
   const indexFolded =
     distance(landmarks[8], wrist) < distance(landmarks[6], wrist);
+  const middleFolded =
+    distance(landmarks[12], wrist) < distance(landmarks[10], wrist);
+  const ringFolded =
+    distance(landmarks[16], wrist) < distance(landmarks[14], wrist);
+  const pinkyFolded =
+    distance(landmarks[20], wrist) < distance(landmarks[18], wrist);
 
-  const palmSize    = distance(landmarks[0], landmarks[5]);
-  const thumbFolded = distance(landmarks[4], landmarks[5]) < palmSize * 0.6;
+  return thumbExtended && indexFolded && middleFolded && ringFolded && pinkyFolded;
+}
 
-  return indexFolded && thumbFolded;
+function isBothHandsThumbsUp(results) {
+  return results.multiHandLandmarks.length >= 2 &&
+         isThumbsUp(results.multiHandLandmarks[0]) &&
+         isThumbsUp(results.multiHandLandmarks[1]);
 }
 
 // ===================================================
@@ -99,39 +112,31 @@ function onResults(results) {
     return;
   }
 
-  const landmarks = results.multiHandLandmarks[0];
-
-  // ✋ Main ouverte → on AFFICHE la boîte info
-  // ✊ Sinon       → on la CACHE
-  if (isHandOpen(landmarks)) {
-    info.style.display = 'flex';
-  } else {
+  if (isBothHandsThumbsUp(results)) {
     info.style.display = 'none';
+    status.textContent = '👍👍 Deux thumbs-up détectés — fermeture du navigateur';
+    window.close();
+    return;
   }
 
-  // 🤏 Si POUCE + INDEX sont fermés → on fait défiler la page
-  //    selon la position verticale du poignet.
-  //
-  // landmarks[0].y = position verticale du poignet,
-  //   entre 0 (haut de la webcam) et 1 (bas).
-  //
-  //  - main en HAUT de l'image  → scroll vers le HAUT
-  //  - main en BAS de l'image   → scroll vers le BAS
-  //  - main au milieu           → zone morte (pas de scroll)
-  if (isThumbAndIndexClosed(landmarks)) {
+  const landmarks = results.multiHandLandmarks[0];
+
+  // ✋ Main ouverte → on AFFICHE la boîte info et on scrolle
+  // ✊ Main fermée → on CACHE la boîte et on ne scrolle pas
+  if (isHandOpen(landmarks)) {
+    info.style.display = 'flex';
     const y = landmarks[0].y;
     if (y < 0.4) {
-      status.textContent = '🤏⬆️ Scroll haut';
+      status.textContent = '✋⬆️ Main haute → scroll haut';
       window.scrollBy({ top: -20, behavior: 'auto' });
     } else if (y > 0.6) {
-      status.textContent = '🤏⬇️ Scroll bas';
+      status.textContent = '✋⬇️ Main basse → scroll bas';
       window.scrollBy({ top: 20, behavior: 'auto' });
     } else {
-      status.textContent = '🤏 Pouce + index fermés (zone morte)';
+      status.textContent = '✋ Main ouverte (zone neutre)';
     }
-  } else if (isHandOpen(landmarks)) {
-    status.textContent = '✋ Main ouverte';
   } else {
+    info.style.display = 'none';
     status.textContent = '✊ Main fermée';
   }
 }
