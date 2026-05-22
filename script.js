@@ -4,11 +4,20 @@
 const video  = document.getElementById('camera');
 const status = document.getElementById('status');
 const info   = document.getElementById('info');
+const body   = document.body;
 const scrollTopButton = document.getElementById('scrollTopButton');
 
 scrollTopButton.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+function setHidden(shouldHide) {
+  if (shouldHide) {
+    body.classList.add('hidden');
+  } else {
+    body.classList.remove('hidden');
+  }
+}
 
 // ===================================================
 // 2. On crée l'objet "Hands" de MediaPipe.
@@ -62,18 +71,25 @@ function distance(a, b) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-function isHandOpen(landmarks) {
-  const wrist = landmarks[0];
-  const tips  = [8, 12, 16, 20];
-  const pips  = [6, 10, 14, 18];
-  let extended = 0;
-  for (let i = 0; i < tips.length; i++) {
-    if (distance(landmarks[tips[i]], wrist) >
-        distance(landmarks[pips[i]], wrist)) {
-      extended++;
-    }
-  }
-  return extended >= 3; // main ouverte = au moins 3 doigts tendus
+function getPalmSize(landmarks) {
+  return distance(landmarks[0], landmarks[5]);
+}
+
+function isThreeFingerPinch(landmarks) {
+  const palmSize = getPalmSize(landmarks);
+  const thumbIndex = distance(landmarks[4], landmarks[8]);
+  const thumbMiddle = distance(landmarks[4], landmarks[12]);
+  const indexMiddle = distance(landmarks[8], landmarks[12]);
+
+  return thumbIndex < palmSize * 0.4 &&
+         thumbMiddle < palmSize * 0.4 &&
+         indexMiddle < palmSize * 0.5;
+}
+
+function getHandRoll(landmarks) {
+  const indexMcp = landmarks[5];
+  const pinkyMcp = landmarks[17];
+  return Math.atan2(pinkyMcp.y - indexMcp.y, pinkyMcp.x - indexMcp.x);
 }
 
 function isThumbsUp(landmarks) {
@@ -108,11 +124,13 @@ function onResults(results) {
   // Aucune main détectée
   if (!results.multiHandLandmarks ||
       results.multiHandLandmarks.length === 0) {
+    setHidden(false);
     status.textContent = '🙈 Aucune main';
     return;
   }
 
   if (isBothHandsThumbsUp(results)) {
+    setHidden(false);
     info.style.display = 'none';
     status.textContent = '👍👍 Deux thumbs-up détectés — fermeture du navigateur';
     window.close();
@@ -121,22 +139,29 @@ function onResults(results) {
 
   const landmarks = results.multiHandLandmarks[0];
 
-  // ✋ Main ouverte → on AFFICHE la boîte info et on scrolle
-  // ✊ Main fermée → on CACHE la boîte et on ne scrolle pas
-  if (isHandOpen(landmarks)) {
+  if (results.multiHandLandmarks.length === 1 && isThumbsUp(landmarks)) {
+    setHidden(true);
+    status.textContent = '👍 Thumbs-up détecté — site caché';
+    return;
+  }
+
+  setHidden(false);
+
+  if (isThreeFingerPinch(landmarks)) {
     info.style.display = 'flex';
-    const y = landmarks[0].y;
-    if (y < 0.4) {
-      status.textContent = '✋⬆️ Main haute → scroll haut';
-      window.scrollBy({ top: -20, behavior: 'auto' });
-    } else if (y > 0.6) {
-      status.textContent = '✋⬇️ Main basse → scroll bas';
-      window.scrollBy({ top: 20, behavior: 'auto' });
+    const roll = getHandRoll(landmarks);
+
+    if (roll < -0.25) {
+      status.textContent = '🤏↪️ Pinch + twist à droite → scroll haut';
+      window.scrollBy({ top: -40, behavior: 'auto' });
+    } else if (roll > 0.25) {
+      status.textContent = '🤏↩️ Pinch + twist à gauche → scroll bas';
+      window.scrollBy({ top: 40, behavior: 'auto' });
     } else {
-      status.textContent = '✋ Main ouverte (zone neutre)';
+      status.textContent = '🤏 Pinch détecté — twist à droite ou à gauche pour scroller';
     }
   } else {
     info.style.display = 'none';
-    status.textContent = '✊ Main fermée';
+    status.textContent = '✊ Main fermée ou geste non reconnu';
   }
 }

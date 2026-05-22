@@ -4,6 +4,10 @@ html {
   scroll-behavior: smooth;
 }
 
+body.hidden {
+  display: none;
+}
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
